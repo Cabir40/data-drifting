@@ -1,0 +1,184 @@
+{
+  "d_bar": 80,
+  "bar_blocks": 2,
+  "d": 184,
+  "layout": "CACACA",
+  "heads": 4,
+  "ff": 3,
+  "read": 1024,
+  "stride": 768,
+  "tokenizer": "utf-8 bytes",
+  "vocab": 257,
+  "pad_id": 256,
+  "threshold": 0.5,
+  "threshold_r95": null,
+  "threshold_r99": null,
+  "threshold_balanced": null,
+  "threshold_rule": "0.5 = validation R98 on output 2; output 1: v7.15's calibration",
+  "params": 2959868,
+  "n_out": 9,
+  "note_head": true,
+  "recipe": {
+    "size": "3m",
+    "lr": 0.0002,
+    "epochs": 2,
+    "batch": 256,
+    "seed": 7,
+    "select": "pr_auc_real",
+    "pair": 0.5,
+    "margin": 2.0,
+    "pos_weight": 2.0,
+    "mix": "masked",
+    "phase1": 0.3,
+    "raw_share": [
+      0.8,
+      0.2
+    ],
+    "n_out": 1,
+    "head_keep": 0.8,
+    "balanced": false,
+    "distill": null,
+    "data": "jev_phi_v5_plus_enrich",
+    "start": "phi-guard-masked-3m-v6.92",
+    "synth": 0,
+    "kev": false,
+    "replay": 0,
+    "pool": "attn",
+    "also_save": [],
+    "val_override": true,
+    "val_from": "jev_phi_v5",
+    "cell_balance": [
+      "fam",
+      "band"
+    ],
+    "cell_rate": [
+      0.3,
+      0.7
+    ],
+    "none_rate": [
+      0.4,
+      0.6
+    ],
+    "enrich_share": 0.15,
+    "label_override": "v6-audit/train_audit_labels_v6_63.csv",
+    "i2b2_w": 2.0,
+    "note_level": true,
+    "note_head": true,
+    "span_aux": 0.5,
+    "drop_test_text": true,
+    "pub": {
+      "pairs": 11000,
+      "long": 0.3,
+      "vis": 1.0
+    },
+    "hard_w": {
+      "w": 2.0
+    },
+    "hard_pos": {
+      "w": 2.0
+    },
+    "twin": {
+      "n": 4000,
+      "only": [
+        "ID",
+        "DATE"
+      ],
+      "srcs": [
+        "i2b2",
+        "nemotron"
+      ]
+    },
+    "rows_per_epoch": 139782,
+    "accum": 1,
+    "selected_by": "pr_auc_real on jev binary_masked validation (all rows), epochs 1-2"
+  },
+  "threshold_r98_val": 0.5,
+  "merge": {
+    "models": [
+      "phi-guard-masked-3m-v6.95",
+      "phi-guard-masked-3m-v7.5"
+    ],
+    "weights": [
+      0.8,
+      0.2
+    ],
+    "rule": "uncalibrated body + standard head averaged"
+  },
+  "calibration": {
+    "offset": 1.148533,
+    "fitted_on": "jev_phi_v5 validation + validation_pipeline (7074 docs, labels v5_final)",
+    "rule": "logit offset on head.2.bias so 0.5 flags 223 clean validation docs, as phi-guard-masked-3m-v6.95 at its 0.5 (matched false alarms)"
+  },
+  "version_of": "phi-guard-masked-3m-v7.14-m75-20",
+  "note": "v7.15 = v7.14-m75-20 (80% v6.95 + 20% v7.5, body + standard head; 0.5 = v6.95's clean-flag count on validation); user 2026-10-26 customer checks",
+  "task": "harm+richness+raw",
+  "outputs": [
+    "standard leak (phi-guard-v6, unchanged)",
+    "harmful leak",
+    "richness level >= 1",
+    "richness level >= 2",
+    "richness level >= 3",
+    "richness level >= 4",
+    "richness level >= 5",
+    "richness level >= 6",
+    "PHI in a raw note"
+  ],
+  "level_rule": "note_probs[:, 0] standard (= v7.15), [:, 1] harmful <= it, [:, 2:8] P(richness level >= k), level = count >= 0.5, [:, 8] P(PHI in a raw note)",
+  "harm": {
+    "base": "phi-guard-masked-3m-v7.15",
+    "frozen_body": true,
+    "data": "jev v5 + v5.17 binary_masked train, labels v6_63, harm_labels.py (no synthetic pairs)",
+    "epochs": 8,
+    "lr": 0.003,
+    "batch": 256,
+    "selected_epoch": 5,
+    "validation": {
+      "epoch": 5,
+      "loss": 0.1265480900882947,
+      "pr_auc_harm": 0.9902687529416485,
+      "harmless_flagged_r98": 0.24352331606217617
+    },
+    "rule": "head-only training on cached v7.15 window vectors; output 1 bit-identical to v7.15"
+  },
+  "calibration_harm": {
+    "offset": 0.9898,
+    "fitted_on": "jev_phi_v5 validation_pipeline rows (3841: 2118 harmful leaks)",
+    "rule": "logit offset on harm.2.bias so validation harmful recall 0.98 sits at 0.5 (before the min with output 1); output 1 keeps v7.15's calibration"
+  },
+  "branch": {
+    "base": "phi-guard-masked-3m-v7.16",
+    "split_after_block": 4,
+    "top_ff": 1,
+    "top_ff_kept": {
+      "top.0.ff": 0.543,
+      "top.1.ff": 0.615
+    },
+    "params": 3459253,
+    "blocks": "own copy of blocks 5-6 + norm + pool, stem frozen",
+    "data": "jev v5 richness_masked + richness_raw train (richness), binary_raw train (raw)",
+    "teachers": {
+      "richness": [
+        "phi-guard-masked-3m-v7.18"
+      ],
+      "raw": "phi-guard-masked-3m-v6.102-raw",
+      "share": 0.5
+    },
+    "branch_init": "phi-guard-masked-3m-v6.102-richness",
+    "epochs": 8,
+    "lr": 0.0002,
+    "lr_heads": 0.002,
+    "docs_per_step": 48,
+    "selected_epoch": 6,
+    "validation": {
+      "epoch": 6,
+      "loss": 0.026956115015045114,
+      "secs": 75,
+      "rich_mae": 0.12666162325732194,
+      "rich_exact": 0.8787420296120177,
+      "raw_pr_auc": 0.9995225492681198,
+      "raw_fp05": 7,
+      "raw_fn05": 13
+    },
+    "rule": "outputs 1-2 bit-identical to v7.16 (v7.15 + harmful head); richness and raw uncalibrated (fixed 0.5, as phi-guard-richness-v6 / raw-v6)"
+  }
+}
